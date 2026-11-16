@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f0f10">
+<title>Taksi Paneli</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--y:#FFC20E;--bg:#0e0e10;--card:#18181b;--card2:#202024;--line:#2c2c31;--txt:#f5f5f6;--mut:#a1a1aa;--red:#ef4444;--green:#22c55e;--orange:#f97316;--blue:#3b82f6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+.inp{width:100%;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:15px;outline:none}
+.inp:focus{border-color:var(--y)}
+select.inp{appearance:auto}
+.btnY{background:var(--y);color:#111;border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:800;white-space:nowrap}
+.btnY[disabled]{opacity:.6}
+.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:600;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn.sm{padding:7px 10px;font-size:13px}
+.btn.d{color:#fca5a5;border-color:rgba(239,68,68,.45)}
+.btn.y{background:var(--y);color:#111;border-color:var(--y);font-weight:800}
+.err{color:#fca5a5;font-size:14px;min-height:1em}
+.hint{font-size:13px;color:var(--mut);line-height:1.5}
+/* Giriş */
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+.lbox h1{font-size:22px;display:flex;align-items:center;gap:10px}
+/* Başlat */
+#start{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;display:grid;place-items:center;padding:20px;text-align:center}
+#start .sbox{max-width:460px;display:flex;flex-direction:column;gap:18px;align-items:center}
+#start .big{font-size:72px}
+#btnStart{font-size:22px;padding:20px 40px;border-radius:18px}
+/* Üst bar */
+header{position:sticky;top:0;z-index:20;background:#121214;border-bottom:1px solid var(--line)}
+.hrow1{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.hname{font-weight:800;font-size:18px;display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.hname .lg{width:38px;height:38px;border-radius:10px;background:var(--y);display:grid;place-items:center;font-size:20px;flex:0 0 auto}
+#durakSel{max-width:280px;font-weight:700;padding:9px 10px}
+.role{font-size:11px;font-weight:800;background:var(--y);color:#111;border-radius:6px;padding:2px 6px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block}
+.dot.on{background:var(--green)}
+.hb{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;display:flex;align-items:center;gap:6px}
+.hb.muted{border-color:var(--orange);color:var(--orange)}
+#clock{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px}
+.sw{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px 12px 6px 6px;font-weight:700;font-size:14px;cursor:pointer}
+.sw input{display:none}
+.sw .tr{width:52px;height:30px;border-radius:30px;background:#3f3f46;position:relative;transition:.2s}
+.sw .tr::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.sw input:checked + .tr{background:var(--green)}
+.sw input:checked + .tr::after{left:25px}
+.sw.off{border-color:var(--red);color:#fca5a5}
+nav.tabs{display:flex;gap:4px;padding:0 12px;overflow-x:auto}
+nav.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:var(--mut);padding:11px 14px;font-size:15px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px}
+nav.tabs button.act{color:var(--txt);border-bottom-color:var(--y)}
+.tbadge{background:var(--red);color:#fff;border-radius:20px;font-size:12px;padding:1px 8px;min-width:22px;text-align:center}
+.adm{display:none!important}
+body.is-admin .adm{display:revert!important}
+body.is-admin nav.tabs button.adm{display:flex!important}
+#offBanner{background:rgba(239,68,68,.15);color:#fca5a5;border-bottom:1px solid rgba(239,68,68,.4);padding:10px 16px;font-weight:700;text-align:center}
+#netBanner{background:rgba(249,115,22,.15);color:#fdba74;border-bottom:1px solid rgba(249,115,22,.4);padding:10px 16px;font-weight:700;text-align:center}
+.view{padding:14px}
+.noDurak{max-width:520px;margin:40px auto;text-align:center;color:var(--mut);line-height:1.6}
+/* Çağrılar */
+.cols{display:grid;grid-template-columns:1.25fr 1fr 0.9fr;gap:14px;align-items:start}
+@media (max-width:1100px){.cols{grid-template-columns:1fr 1fr}.col.hist{grid-column:1/-1}}
+@media (max-width:720px){.cols{grid-template-columns:1fr}}
+.col{background:#131316;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px}
+.col h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);display:flex;align-items:center;gap:8px;padding:2px 4px}
+.badge{background:var(--card2);color:var(--txt);border-radius:20px;padding:2px 10px;font-size:13px}
+.badge.has{background:var(--red);color:#fff}
+.empty{color:#5b5b63;text-align:center;padding:30px 10px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.card.new{border-color:var(--y);box-shadow:0 0 0 2px rgba(255,194,14,.25)}
+.card.warn{border-color:var(--orange)}
+.card.late{border-color:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{box-shadow:0 0 0 4px rgba(239,68,68,.35)}}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cnok{font-size:20px;font-weight:800;line-height:1.2}
+.age{font-variant-numeric:tabular-nums;font-weight:800;font-size:18px;background:var(--card2);border-radius:8px;padding:4px 8px;white-space:nowrap}
+.card.warn .age{color:var(--orange)}
+.card.late .age{color:var(--red)}
+.crow{font-size:15px;color:#d4d4d8;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.crow a{color:#93c5fd;text-decoration:none;font-weight:600}
+.cnot{background:rgba(255,194,14,.08);border-left:3px solid var(--y);padding:8px 10px;border-radius:6px;font-size:15px}
+.cact{display:flex;gap:8px;margin-top:4px}
+.bOk{flex:2;background:var(--green);color:#04140a;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:900}
+.bRed{flex:1;background:transparent;color:#fca5a5;border:1px solid rgba(239,68,68,.5);border-radius:12px;padding:15px;font-size:15px;font-weight:700}
+.bSend{flex:1;background:var(--blue);color:#fff;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:900}
+.pl{display:inline-flex;border:2px solid #111;border-radius:6px;overflow:hidden;background:#fff}
+.pl b{background:#003399;color:#fff;font-size:10px;padding:0 5px;display:flex;align-items:flex-end;padding-bottom:3px}
+.pl span{color:#111;font-weight:900;font-size:18px;padding:3px 9px;letter-spacing:.04em;white-space:nowrap}
+.hrow{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;font-size:13px;padding:8px 6px;border-bottom:1px solid var(--line)}
+.hrow:last-child{border-bottom:0}
+.hrow .t{color:var(--mut);font-variant-numeric:tabular-nums}
+.hrow .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st{font-size:11px;font-weight:800;border-radius:6px;padding:3px 7px;white-space:nowrap}
+.st.gonderildi{background:rgba(59,130,246,.2);color:#93c5fd}
+.st.reddedildi{background:rgba(239,68,68,.18);color:#fca5a5}
+.st.iptal{background:rgba(161,161,170,.18);color:#d4d4d8}
+.sum{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--mut);padding:0 4px}
+/* Yönetim panelleri */
+.wrap{max-width:1150px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.panel{background:#131316;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:17px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;align-items:end}
+.form label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;color:var(--mut);padding:8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:12px;font-weight:800;border-radius:20px;padding:3px 9px}
+.pill.on{background:rgba(34,197,94,.18);color:#86efac}.pill.off{background:rgba(239,68,68,.18);color:#fca5a5}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.qcard .qr{background:#fff;padding:8px;border-radius:10px}
+.qcard .qr img{width:160px;height:160px;display:block}
+.qcard .nm{font-weight:800}
+.qcard .url{font-size:11px;color:var(--mut);word-break:break-all}
+.qcard .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.qcard label{font-size:13px;display:flex;gap:6px;align-items:center;color:var(--mut)}
+.ucnt{font-size:11px;background:var(--y);color:#111;border-radius:10px;padding:0 7px;font-weight:800}
+.fprev{font-size:12px;color:var(--mut);line-height:1.5}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:60;display:grid;place-items:center;padding:16px}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;width:100%;max-width:540px;display:flex;flex-direction:column;gap:14px;max-height:94vh;overflow:auto}
+.mbox h3{font-size:20px}
+.minfo{background:var(--card2);border-radius:12px;padding:10px 12px;font-size:14px;color:#d4d4d8}
+.lbl{font-size:13px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:-6px}
+#oPlaka{font-size:26px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.recent{display:flex;flex-wrap:wrap;gap:8px}
+.recent button{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;text-align:left}
+.recent button b{display:block;font-size:15px;letter-spacing:.04em}
+.recent button small{color:var(--mut)}
+.chips{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.chips button{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 0;font-size:17px;font-weight:800}
+.chips button.sel{background:var(--y);color:#111;border-color:var(--y)}
+.mact{display:flex;gap:10px}
+.bSec{flex:1;background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:15px;font-weight:700}
+.reasons{display:flex;flex-direction:column;gap:8px}
+.reasons button{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:16px;font-size:16px;font-weight:700;text-align:left}
+.reasons button:hover{border-color:var(--red)}
+.urow{display:grid;grid-template-columns:1fr 120px 40px;gap:8px;align-items:center}
+.urow .inp{padding:10px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#27272a;border:1px solid var(--line);color:#fff;padding:14px 20px;border-radius:14px;font-weight:700;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:92vw}
+#toast.bad{background:#450a0a;border-color:var(--red)}
+/* Afiş (yazdırma) */
+#printArea{display:none}
+.poster{width:148mm;min-height:200mm;margin:0 auto;border:3px solid #111;border-radius:8mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;font-family:Arial,sans-serif;color:#111;background:#fff;page-break-after:always;break-after:page}
+.poster .ph{width:100%;background:#FFC20E;padding:7mm 5mm 5mm;text-align:center;border-bottom:3px solid #111;
+  background-image:repeating-linear-gradient(90deg,#111 0 8mm,#FFC20E 8mm 16mm);background-size:100% 4mm;background-repeat:no-repeat;background-position:bottom}
+.poster .ph .tx{font-size:20mm;font-weight:900;letter-spacing:2mm;line-height:1}
+.poster .ph .sb{font-size:6mm;font-weight:800;margin:2mm 0 4mm}
+.poster .pq{margin:7mm 0 4mm}
+.poster .pq img{width:78mm;height:78mm;display:block}
+.poster .langs{font-size:3.6mm;line-height:1.55;text-align:center;color:#222;padding:0 8mm}
+.poster .pn{margin-top:5mm;font-size:7mm;font-weight:900;text-align:center;padding:0 6mm}
+.poster .pd{margin:2mm 0 6mm;font-size:4.5mm;color:#333;text-align:center}
+@media print{
+  @page{size:A5 portrait;margin:6mm}
+  body{background:#fff}
+  body > *:not(#printArea){display:none!important}
+  #printArea{display:block}
+}
+</style>
+</head>
+<body>
+<div id="bootErr" style="display:none;position:fixed;inset:0;z-index:99999;background:#111;color:#f5f5f5;font:15px/1.6 system-ui,Arial,sans-serif;padding:28px;overflow:auto"></div>
+<script>
+(function(){
+  function show(m){
+    if (window.__appReady) return;
+    var b = document.getElementById("bootErr"); if (!b) return;
+    var fileHint = location.protocol === "file:" ? "<p style='margin-top:12px;color:#fde68a'>Not: Sayfayı doğrudan bilgisayardan açtınız. index.html, panel.html, firebase-config.js ve demo.js dosyalarının <b>aynı klasörde</b> olduğundan emin olun.</p>" : "";
+    b.innerHTML = "<div style='max-width:640px;margin:0 auto'><div style='font-size:42px'>⚠️</div><h2 style='margin:8px 0 12px'>Sayfa başlatılamadı</h2><div style='background:#222;border:1px solid #444;border-radius:10px;padding:12px;font-family:monospace;font-size:13px;white-space:pre-wrap'>" + String(m).replace(/</g,"&lt;") + "</div>" + fileHint + "<p style='margin-top:12px;color:#aaa'>İnternet bağlantınızı ve firebase-config.js dosyasını kontrol edin. Firebase kurulmadan denemek için firebase-config.js içindeki apiKey değerini \"BURAYA_API_KEY\" olarak bırakın; sistem demo modunda açılır.</p></div>";
+    b.style.display = "block";
+  }
+  window.__bootFail = show;
+  window.addEventListener("error", function(e){ show(e.message || "Bilinmeyen hata"); });
+  window.addEventListener("unhandledrejection", function(e){ var r = e.reason; show(r && (r.message || r.code) || String(r)); });
+  setTimeout(function(){ show("Sayfa 12 saniye içinde başlatılamadı. İnternet bağlantısı olmayabilir ya da Firebase'e ulaşılamıyor olabilir."); }, 12000);
+})();
+</script>
+<script src="firebase-config.js"></script>
+<script src="demo.js"></script>
+
+<!-- GİRİŞ -->
+<section id="login" class="hidden">
+  <div class="lbox">
+    <h1><span>🚕</span> Taksi Paneli</h1>
+    <p class="hint">Durak görevlileri ve yöneticiler bu ekrandan giriş yapar.</p>
+    <input id="lEmail" class="inp" type="email" placeholder="E-posta" autocomplete="username">
+    <input id="lPass" class="inp" type="password" placeholder="Şifre" autocomplete="current-password">
+    <div id="lErr" class="err"></div>
+    <button id="lBtn" class="btnY">Giriş Yap</button>
+  </div>
+</section>
+
+<!-- BAŞLAT -->
+<div id="start" class="hidden">
+  <div class="sbox">
+    <div class="big">🔔</div>
+    <h2 id="sName" style="font-size:24px"></h2>
+    <p style="color:var(--mut);line-height:1.5">Yeni çağrılarda sesli alarm çalabilmesi için tarayıcı bir kez dokunmanızı istiyor. Panel açık kaldığı sürece ekran kapanmaz.</p>
+    <button id="btnStart" class="btnY">PANELİ BAŞLAT</button>
+  </div>
+</div>
+
+<!-- UYGULAMA -->
+<div id="app" class="hidden">
+  <header>
+    <div class="hrow1">
+      <div class="hname">
+        <div class="lg">🚕</div>
+        <span id="hName"></span>
+        <select id="durakSel" class="inp adm" title="Durak seç"></select>
+        <span class="role adm">YÖNETİCİ</span>
+      </div>
+      <label class="sw" id="swWrap" title="Kapalıyken yolcular çağrı yapamaz">
+        <input type="checkbox" id="swAktif"><span class="tr"></span><span id="swTxt">Çağrı alıyoruz</span>
+      </label>
+      <span class="hb" title="Bağlantı durumu"><span id="netDot" class="dot"></span><span id="netTxt">Bağlanıyor</span></span>
+      <button class="hb" id="btnMute">🔊 Ses açık</button>
+      <button class="hb" id="btnTest">Ses testi</button>
+      <span id="clock"></span>
+      <button class="hb" id="btnOut">Çıkış</button>
+    </div>
+    <nav class="tabs">
+      <button data-tab="vCalls" class="act">🔔 Çağrılar <span class="tbadge hidden" id="tabBadge">0</span></button>
+      <button data-tab="vQr">📍 QR Noktaları & Ücretler</button>
+      <button data-tab="vDuraklar" class="adm">🏢 Duraklar</button>
+      <button data-tab="vUsers" class="adm">👤 Kullanıcılar</button>
+    </nav>
+  </header>
+  <div id="offBanner" class="hidden">⛔ Durak KAPALI. Yolcular şu an çağrı yapamıyor.</div>
+  <div id="netBanner" class="hidden">⚠️ İnternet bağlantısı yok. Yeni çağrılar görünmeyebilir.</div>
+
+  <div id="noDurak" class="noDurak hidden">Henüz durak yok. <b>Duraklar</b> sekmesinden ilk durağı oluşturun.</div>
+
+  <!-- ÇAĞRILAR -->
+  <section id="vCalls" class="view">
+    <div class="cols">
+      <section class="col pend">
+        <h2>🔔 Bekleyen çağrılar <span class="badge" id="cPend">0</span></h2>
+        <div id="lPend"></div>
+      </section>
+      <section class="col appr">
+        <h2>✅ Onaylandı · gönderilecek <span class="badge" id="cAppr">0</span></h2>
+        <div id="lAppr"></div>
+      </section>
+      <section class="col hist">
+        <h2>🕘 Son 12 saat</h2>
+        <div class="sum" id="sum"></div>
+        <div id="lHist"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- QR & ÜCRETLER -->
+  <section id="vQr" class="view hidden">
+    <div class="wrap">
+      <div class="panel">
+        <h2>Yeni QR noktası</h2>
+        <div class="form">
+          <label>Nokta adı (yolcu ve durak görür)<input id="nAd" class="inp" maxlength="80" placeholder="Örn: Noxinn Deluxe Hotel – Lobi"></label>
+          <label>Açıklama (isteğe bağlı)<input id="nAc" class="inp" maxlength="200" placeholder="Örn: Ana giriş kapısı"></label>
+          <button id="nAdd" class="btnY">+ Nokta ekle</button>
+        </div>
+        <details>
+          <summary class="hint" style="cursor:pointer">Gelişmiş: yolcu sayfası adresi</summary>
+          <div class="form" style="margin-top:10px">
+            <label style="grid-column:1/-1">QR kodları bu adrese yönlenir<input id="qBase" class="inp"></label>
+          </div>
+        </details>
+      </div>
+      <div class="panel">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <h2 style="margin-right:auto">QR noktaları</h2>
+          <button id="pSel" class="btn">🖨️ Seçilileri yazdır</button>
+          <button id="pAll" class="btn y">🖨️ Tümünü yazdır</button>
+        </div>
+        <div id="qGrid" class="qgrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DURAKLAR (yönetici) -->
+  <section id="vDuraklar" class="view hidden">
+    <div class="wrap">
+      <div class="panel">
+        <h2>Yeni durak</h2>
+        <div class="form">
+          <label>Durak adı<input id="dAd" class="inp" maxlength="80" placeholder="Örn: Konaklı Taksi"></label>
+          <label>Telefon (yolcuya gösterilir)<input id="dTel" class="inp" maxlength="25" placeholder="0242 000 00 00"></label>
+          <button id="dAdd" class="btnY">+ Durak oluştur</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Duraklar</h2>
+        <table><thead><tr><th>Durak</th><th>Telefon</th><th>Durum</th><th>Kullanıcı</th><th></th></tr></thead><tbody id="dList"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- KULLANICILAR (yönetici) -->
+  <section id="vUsers" class="view hidden">
+    <div class="wrap">
+      <div class="panel">
+        <h2>Durak kullanıcısı oluştur</h2>
+        <p class="hint">Kullanıcı bu panele e-posta ve şifresiyle girer; yalnızca bağlı olduğu durağın çağrılarını, QR noktalarını ve ücretlerini görür.</p>
+        <div class="form">
+          <label>Durak<select id="uDurak" class="inp"></select></label>
+          <label>E-posta<input id="uEmail" class="inp" type="email" placeholder="konakli@durak.com"></label>
+          <label>Şifre (en az 6 karakter)<input id="uPass" class="inp" type="text" autocomplete="new-password"></label>
+          <button id="uAdd" class="btnY">+ Kullanıcı oluştur</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Kullanıcılar</h2>
+        <table><thead><tr><th>E-posta</th><th>Durak</th><th></th></tr></thead><tbody id="uList"></tbody></table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ONAY -->
+<div id="mOnay" class="modal hidden">
+  <div class="mbox">
+    <h3>Çağrıyı onayla</h3>
+    <div id="oInfo" class="minfo"></div>
+    <div id="oRecentWrap"><div class="lbl" style="margin-bottom:8px">Son kullanılan araçlar</div><div id="oRecent" class="recent"></div></div>
+    <div class="lbl">Plaka</div>
+    <input id="oPlaka" class="inp" list="dlPlaka" autocomplete="off" placeholder="07 ABC 123" maxlength="15">
+    <datalist id="dlPlaka"></datalist>
+    <div class="lbl">Şoför adı</div>
+    <input id="oSofor" class="inp" autocomplete="off" placeholder="Ad Soyad" maxlength="60">
+    <div class="lbl">Tahmini varış süresi (dakika)</div>
+    <div class="chips" id="oEta"></div>
+    <div id="oErr" class="err"></div>
+    <div class="mact">
+      <button class="bSec" data-close>Vazgeç</button>
+      <button class="bOk" id="oSave">ONAYLA ve YOLCUYA BİLDİR</button>
+    </div>
+  </div>
+</div>
+
+<!-- RED -->
+<div id="mRed" class="modal hidden">
+  <div class="mbox">
+    <h3>Çağrıyı reddet</h3>
+    <div id="rInfo" class="minfo"></div>
+    <div class="reasons">
+      <button data-reason="arac_yok">🚫 Müsait araç yok</button>
+      <button data-reason="bolge_disi">🗺️ Bölge dışı / hizmet verilemiyor</button>
+      <button data-reason="diger">✖️ Diğer</button>
+    </div>
+    <button class="bSec" data-close>Vazgeç</button>
+  </div>
+</div>
+
+<!-- ÜCRETLER -->
+<div id="mUcret" class="modal hidden">
+  <div class="mbox">
+    <h3>💶 Tahmini ücretler</h3>
+    <div class="minfo" id="uNokta"></div>
+    <p class="hint">Bu noktadan alınan yolculara, kendi dillerinde "bilgi amaçlıdır, taksimetre geçerlidir" notuyla gösterilir. Varış yerlerini herkesin anlayacağı şekilde yazın (örn. "Gazipaşa Havalimanı (GZP)"). Sıralama burada girdiğiniz sırayla olur.</p>
+    <div style="display:grid;grid-template-columns:1fr 120px 40px;gap:8px;font-size:12px;font-weight:700;color:var(--mut)"><span>Varış yeri</span><span>Ücret (₺)</span><span></span></div>
+    <div id="uRows" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" id="uAddRow">+ Satır ekle</button>
+      <select id="uCopy" class="inp" style="width:auto;padding:7px 10px;font-size:13px"></select>
+    </div>
+    <div class="mact">
+      <button class="bSec" data-close>Vazgeç</button>
+      <button class="bOk" id="uSave">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- KULLANICI SİL -->
+<div id="mUserDel" class="modal hidden">
+  <div class="mbox">
+    <h3>Kullanıcıyı sil</h3>
+    <div class="minfo" id="udInfo"></div>
+    <p class="hint">Kullanıcının şifresini biliyorsanız girin: hesap <b>tamamen silinir</b>.<br>Bilmiyorsanız boş bırakın: kullanıcının panele erişimi <b>hemen kapanır</b>, hesap Firebase'de işlevsiz kalır (Firebase Console → Authentication'dan da silebilirsiniz).</p>
+    <input id="udPass" class="inp" type="password" placeholder="Kullanıcının şifresi (isteğe bağlı)" autocomplete="off">
+    <div id="udErr" class="err"></div>
+    <div class="mact">
+      <button class="bSec" data-close>Vazgeç</button>
+      <button class="bRed" id="udOk" style="flex:2">Sil</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+<div id="toast" class="hidden"></div>
+
+<script type="module">
+const CFG = window.FIREBASE_CONFIG || {};
+const DEMO = new URLSearchParams(location.search).has("demo") || !CFG.apiKey || String(CFG.apiKey).startsWith("BURAYA");
+let FA, FU, FD;
+if (DEMO){
+  if (!window.DemoFB) throw new Error("demo.js dosyası bulunamadı. Tüm dosyaların aynı klasörde olduğundan emin olun.");
+  FA = FU = FD = window.DemoFB;
+} else {
+  const V = "https://www.gstatic.com/firebasejs/10.12.2/";
+  [FA, FU, FD] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-auth.js"), import(V + "firebase-database.js")]);
+}
+const { initializeApp } = FA;
+const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail, deleteUser } = FU;
+const { getDatabase, ref, get, set, push, update, remove, onValue, query, orderByChild, startAt, runTransaction, serverTimestamp } = FD;
+
+const app = initializeApp(CFG, "panel");      // panelin kendi oturumu
+const auth = getAuth(app);
+const db = getDatabase(app);
+const app2 = initializeApp(CFG, "ikincil");   // kullanıcı oluşturma/silme için (yönetici oturumu düşmesin)
+const auth2 = getAuth(app2);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const FLAG = { tr:"🇹🇷 TR", en:"🇬🇧 EN", de:"🇩🇪 DE", ru:"🇷🇺 RU", nl:"🇳🇱 NL", cs:"🇨🇿 CZ", pl:"🇵🇱 PL" };
+const RED = { arac_yok:"Araç yok", bolge_disi:"Bölge dışı", diger:"Diğer" };
+const ST = { gonderildi:"GÖNDERİLDİ", reddedildi:"REDDEDİLDİ", iptal:"İPTAL (yolcu)" };
+const ETAS = [3, 5, 7, 10, 15, 20, 30];
+const byName = (a, b) => (a[1].ad || "").localeCompare(b[1].ad || "", "tr");
+
+let user = null, isAdmin = false, myDurakId = null, durakId = null;
+let durak = {}, calls = {}, araclar = {}, noktalar = {}, duraklar = {}, kullanicilar = {};
+let offset = 0, firstLoad = true, prevState = {}, mutedUntil = 0, soundOn = true, started = false;
+let ctxUnsubs = [], callsUnsub = null, pendingLoginErr = "";
+const now = () => Date.now() + offset;
+
+/* =================== GİRİŞ =================== */
+$("lBtn").onclick = doLogin;
+$("lPass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+if (DEMO){ $("lEmail").value = "admin@demo.com"; $("lPass").value = "123456";
+  window.DemoFB.banner("Yönetici: admin@demo.com · Durak: durak@demo.com (şifre 123456) · <a style='color:#111;font-weight:800' href='index.html' target='_blank'>Yolcu sayfası</a>"); }
+async function doLogin(){
+  $("lErr").textContent = ""; $("lBtn").disabled = true;
+  try{ await signInWithEmailAndPassword(auth, $("lEmail").value.trim(), $("lPass").value); }
+  catch(e){ $("lErr").textContent = "E-posta veya şifre hatalı."; }
+  $("lBtn").disabled = false;
+}
+$("btnOut").onclick = () => { if (confirm("Panelden çıkılsın mı? Çıkarsanız yeni çağrılar için alarm çalmaz.")) signOut(auth).then(() => location.reload()); };
+
+onAuthStateChanged(auth, async u => {
+  window.__appReady = true;
+  // Aynı tarayıcıda başka sekmede farklı hesapla giriş yapılırsa bu sekmeyi temiz şekilde yenile
+  if (started){ if (!u || !user || u.uid !== user.uid) location.reload(); return; }
+  if (!u || u.isAnonymous){
+    if (u) await signOut(auth);
+    $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("start").classList.add("hidden");
+    $("lErr").textContent = pendingLoginErr; pendingLoginErr = "";
+    return;
+  }
+  user = u;
+  const [a, k] = await Promise.all([
+    get(ref(db, `adminler/${u.uid}`)).catch(() => null),
+    get(ref(db, `kullanicilar/${u.uid}`)).catch(() => null)
+  ]);
+  isAdmin = !!(a && a.val() === true);
+  myDurakId = k && k.exists() ? k.val().durakId : null;
+  if (!isAdmin && !myDurakId){ pendingLoginErr = "Bu hesap bir durağa bağlı değil."; await signOut(auth); return; }
+  $("login").classList.add("hidden");
+  if (myDurakId && !isAdmin){
+    const ds = await get(ref(db, `duraklar/${myDurakId}`)).catch(() => null);
+    $("sName").textContent = ds && ds.exists() ? ds.val().ad : "";
+  } else $("sName").textContent = "Yönetici paneli";
+  $("start").classList.remove("hidden");
+});
+
+$("btnStart").onclick = () => {
+  unlockAudio();
+  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+  keepAwake();
+  $("start").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  if (!started){ started = true; startApp(); }
+};
+
+/* =================== UYGULAMA =================== */
+function startApp(){
+  document.body.classList.toggle("is-admin", isAdmin);
+  soundOn = !isAdmin;           // yönetici izler; alarmı isterse açar
+  updateMuteBtn();
+  $("qBase").value = localStorage.getItem("taksi_base") || new URL("index.html", location.href).href;
+  $("qBase").onchange = () => { localStorage.setItem("taksi_base", $("qBase").value.trim()); renderNoktalar(); };
+
+  onValue(ref(db, ".info/serverTimeOffset"), s => { offset = s.val() || 0; });
+  onValue(ref(db, ".info/connected"), s => {
+    const on = s.val() === true;
+    $("netDot").classList.toggle("on", on);
+    $("netTxt").textContent = on ? "Çevrimiçi" : "Bağlantı yok";
+    $("netBanner").classList.toggle("hidden", on);
+  });
+
+  if (isAdmin){
+    onValue(ref(db, "duraklar"), s => {
+      duraklar = s.val() || {};
+      renderDurakSelects(); renderDuraklar(); renderUsers();
+      if (!durakId || !duraklar[durakId]){
+        const saved = localStorage.getItem("panel_durak");
+        const ids = Object.entries(duraklar).sort(byName).map(x => x[0]);
+        selectDurak(duraklar[saved] ? saved : (ids[0] || null));
+      }
+    });
+    onValue(ref(db, "kullanicilar"), s => { kullanicilar = s.val() || {}; renderUsers(); renderDuraklar(); });
+    $("durakSel").onchange = () => selectDurak($("durakSel").value || null);
+  } else {
+    selectDurak(myDurakId);
+  }
+
+  setInterval(() => { if (durakId) subscribeCalls(); }, 30 * 60 * 1000); // 12 saatlik pencereyi kaydır
+  setInterval(tickSecond, 1000);
+  setInterval(alarmLoop, 3000);
+  setInterval(updateMuteBtn, 5000);
+  tickSecond();
+}
+
+function selectDurak(id){
+  ctxUnsubs.forEach(f => { try{ f(); }catch(e){} }); ctxUnsubs = [];
+  if (callsUnsub){ callsUnsub(); callsUnsub = null; }
+  durakId = id || null; durak = {}; calls = {}; araclar = {}; noktalar = {}; prevState = {}; firstLoad = true;
+  if (isAdmin){ localStorage.setItem("panel_durak", durakId || ""); $("durakSel").value = durakId || ""; }
+  showTab(curTab);
+  renderHeader(); renderCalls(); renderNoktalar();
+  if (!durakId) return;
+  ctxUnsubs.push(onValue(ref(db, `duraklar/${durakId}`), s => { durak = s.val() || {}; renderHeader(); }));
+  ctxUnsubs.push(onValue(ref(db, `araclar/${durakId}`), s => { araclar = s.val() || {}; }));
+  ctxUnsubs.push(onValue(ref(db, `noktalar/${durakId}`), s => { noktalar = s.val() || {}; renderNoktalar(); }));
+  subscribeCalls();
+}
+
+function renderHeader(){
+  $("hName").textContent = isAdmin ? "" : (durak.ad || "");
+  $("hName").classList.toggle("hidden", isAdmin);
+  const has = !!durakId;
+  $("swWrap").classList.toggle("hidden", !has);
+  const a = durak.aktif === true;
+  $("swAktif").checked = a;
+  $("swTxt").textContent = a ? "Çağrı alıyoruz" : "KAPALI";
+  $("swWrap").classList.toggle("off", !a);
+  $("offBanner").classList.toggle("hidden", !has || a || !durak.ad);
+  updateTitle();
+}
+function updateTitle(){
+  const p = Object.values(calls).filter(c => c.durum === "bekliyor").length;
+  document.title = (p ? `(${p}) YENİ ÇAĞRI · ` : "") + (durak.ad || "Taksi") + " · Panel";
+  $("tabBadge").textContent = p; $("tabBadge").classList.toggle("hidden", !p);
+}
+
+$("swAktif").onchange = async e => {
+  const v = e.target.checked;
+  if (!v && !confirm("Durak KAPATILSIN mı? Kapalıyken yolcular QR'dan çağrı yapamaz.")){ e.target.checked = true; return; }
+  try{ await set(ref(db, `duraklar/${durakId}/aktif`), v); }
+  catch(err){ toast("Değiştirilemedi: " + err.message, true); e.target.checked = !v; }
+};
+
+/* ---------- Sekmeler ---------- */
+let curTab = "vCalls";
+function showTab(id){
+  curTab = id;
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("act", b.dataset.tab === id));
+  const needDurak = id === "vCalls" || id === "vQr";
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("hidden", v.id !== id || (needDurak && !durakId)));
+  $("noDurak").classList.toggle("hidden", !(needDurak && !durakId));
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+/* =================== ÇAĞRILAR =================== */
+function subscribeCalls(){
+  if (callsUnsub) callsUnsub();
+  const id = durakId;
+  const q = query(ref(db, `cagrilar/${id}`), orderByChild("olusturma"), startAt(Date.now() - 12 * 3600e3));
+  callsUnsub = onValue(q, s => {
+    if (id !== durakId) return;
+    calls = s.val() || {};
+    detectChanges(); renderCalls();
+  }, err => toast("Çağrılar okunamadı: " + err.message, true));
+}
+
+function detectChanges(){
+  const fresh = [];
+  for (const [id, c] of Object.entries(calls)){
+    const p = prevState[id];
+    if (!firstLoad){
+      if (!p && c.durum === "bekliyor") fresh.push(c);
+      if (p && p !== "iptal" && c.durum === "iptal"){
+        if (soundOn) sndCancel();
+        toast(`❌ ${c.noktaAd || ""} noktasındaki çağrı YOLCU TARAFINDAN İPTAL edildi${c.plaka ? " (" + c.plaka + ")" : ""}`, true, 9000);
+      }
+    }
+    prevState[id] = c.durum;
+  }
+  firstLoad = false;
+  if (fresh.length){
+    mutedUntil = 0; updateMuteBtn();
+    if (soundOn) sndNew();
+    fresh.forEach(c => notify("🚕 Yeni taksi çağrısı", `${c.noktaAd || ""}${c.isim ? " · " + c.isim : ""}`));
+  }
+}
+
+const fmtT = ms => ms ? new Date(ms).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "--:--";
+const fmtAge = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const plateHtml = p => `<span class="pl"><b>TR</b><span>${esc(p)}</span></span>`;
+const telHref = t => "tel:" + String(t || "").replace(/[^\d+]/g, "");
+function mapLink(c){
+  if (typeof c.lat !== "number" || typeof c.lng !== "number") return "";
+  return `<div class="crow"><a target="_blank" rel="noopener" href="https://www.google.com/maps?q=${c.lat},${c.lng}">🗺️ Yolcunun konumunu haritada aç${c.dogruluk ? ` (±${c.dogruluk} m)` : ""}</a></div>`;
+}
+
+function renderCalls(){
+  const all = Object.entries(calls).map(([id, c]) => ({ id, ...c }));
+  const pend = all.filter(c => c.durum === "bekliyor").sort((a, b) => a.olusturma - b.olusturma);
+  const appr = all.filter(c => c.durum === "onaylandi").sort((a, b) => (a.onayZamani || 0) - (b.onayZamani || 0));
+  const lastT = c => c.gonderimZamani || c.redZamani || c.iptalZamani || c.olusturma || 0;
+  const hist = all.filter(c => ["gonderildi", "reddedildi", "iptal"].includes(c.durum)).sort((a, b) => lastT(b) - lastT(a));
+
+  $("cPend").textContent = pend.length; $("cPend").classList.toggle("has", pend.length > 0);
+  $("cAppr").textContent = appr.length;
+  updateTitle();
+
+  $("lPend").innerHTML = pend.length ? pend.map(c => `
+    <div class="card">
+      <div class="ctop"><div class="cnok">📍 ${esc(c.noktaAd || "?")}</div><div class="age" data-age="${c.olusturma || 0}">0:00</div></div>
+      <div class="crow">
+        ${c.isim ? `<span>👤 ${esc(c.isim)}</span>` : ""}
+        <a href="${esc(telHref(c.telefon))}">📞 ${esc(c.telefon)}</a>
+        <span>${FLAG[c.dil] || esc(c.dil || "")}</span>
+        <span style="color:var(--mut)">${fmtT(c.olusturma)}</span>
+      </div>
+      ${c.not ? `<div class="cnot">📝 ${esc(c.not)}</div>` : ""}
+      ${mapLink(c)}
+      <div class="cact">
+        <button class="bOk" data-onay="${c.id}">✔ ONAYLA</button>
+        <button class="bRed" data-red="${c.id}">Reddet</button>
+      </div>
+    </div>`).join("") : `<div class="empty">Bekleyen çağrı yok</div>`;
+
+  $("lAppr").innerHTML = appr.length ? appr.map(c => `
+    <div class="card">
+      <div class="ctop"><div class="cnok">📍 ${esc(c.noktaAd || "?")}</div>${plateHtml(c.plaka || "")}</div>
+      <div class="crow">
+        <span>🧑‍✈️ ${esc(c.sofor || "-")}</span>
+        <span>⏱ ${c.eta || "?"} dk</span>
+        <span style="color:var(--mut)">Onay: ${fmtT(c.onayZamani)}</span>
+      </div>
+      <div class="crow">
+        ${c.isim ? `<span>👤 ${esc(c.isim)}</span>` : ""}
+        <a href="${esc(telHref(c.telefon))}">📞 ${esc(c.telefon)}</a>
+        <span>${FLAG[c.dil] || ""}</span>
+      </div>
+      ${c.not ? `<div class="cnot">📝 ${esc(c.not)}</div>` : ""}
+      ${mapLink(c)}
+      <div class="cact"><button class="bSend" data-send="${c.id}">🚖 GÖNDERİLDİ</button></div>
+    </div>`).join("") : `<div class="empty">Gönderilmeyi bekleyen yok</div>`;
+
+  const cnt = k => hist.filter(c => c.durum === k).length;
+  const ok = all.filter(c => c.onayZamani);
+  const avg = ok.length ? Math.round(ok.reduce((s, c) => s + (c.onayZamani - c.olusturma), 0) / ok.length / 1000) : null;
+  $("sum").innerHTML = `<span>Gönderilen: <b>${cnt("gonderildi")}</b></span><span>Reddedilen: <b>${cnt("reddedildi")}</b></span><span>İptal: <b>${cnt("iptal")}</b></span>${avg !== null ? `<span>Ort. onay: <b>${fmtAge(avg * 1000)}</b></span>` : ""}`;
+
+  $("lHist").innerHTML = hist.length ? hist.slice(0, 80).map(c => `
+    <div class="hrow">
+      <span class="t">${fmtT(lastT(c))}</span>
+      <span class="n">${esc(c.noktaAd || "")}${c.plaka ? ` · <b>${esc(c.plaka)}</b>` : ""}${c.redSebebi ? ` · ${RED[c.redSebebi] || ""}` : ""}</span>
+      <span class="st ${c.durum}">${ST[c.durum]}</span>
+    </div>`).join("") : `<div class="empty">Kayıt yok</div>`;
+  tickSecond();
+}
+
+function tickSecond(){
+  const n = now();
+  $("clock").textContent = new Date(n).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  document.querySelectorAll("[data-age]").forEach(el => {
+    const d = n - (+el.dataset.age);
+    el.textContent = fmtAge(d);
+    const card = el.closest(".card");
+    card.classList.toggle("new", d < 120000);
+    card.classList.toggle("warn", d >= 120000 && d < 240000);
+    card.classList.toggle("late", d >= 240000);
+  });
+}
+
+/* ---------- Onay / red / gönderildi ---------- */
+let curOnay = null, curEta = null, curRed = null;
+document.addEventListener("click", e => {
+  const o = e.target.closest("[data-onay]"); if (o) return openOnay(o.dataset.onay);
+  const r = e.target.closest("[data-red]"); if (r) return openRed(r.dataset.red);
+  const g = e.target.closest("[data-send]"); if (g) return markSent(g.dataset.send, g);
+  if (e.target.closest("[data-close]") || e.target.classList.contains("modal")) closeModals();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModals();
+  if (e.key === "Enter" && !$("mOnay").classList.contains("hidden")) { e.preventDefault(); saveOnay(); }
+});
+function closeModals(){ document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden")); curOnay = curRed = null; }
+const callInfo = c => `📍 <b>${esc(c.noktaAd || "")}</b>${c.isim ? " · 👤 " + esc(c.isim) : ""} · 📞 ${esc(c.telefon)}${c.not ? "<br>📝 " + esc(c.not) : ""}`;
+
+$("oEta").innerHTML = ETAS.map(m => `<button type="button" data-eta="${m}">${m}</button>`).join("");
+$("oEta").addEventListener("click", e => { const b = e.target.closest("[data-eta]"); if (b) setEta(+b.dataset.eta); });
+function setEta(m){ curEta = m; document.querySelectorAll("#oEta button").forEach(b => b.classList.toggle("sel", +b.dataset.eta === m)); }
+function normPlate(v){
+  const raw = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const m = raw.match(/^(\d{2})([A-Z]{1,3})(\d{2,4})$/);
+  return m ? `${m[1]} ${m[2]} ${m[3]}` : String(v || "").toUpperCase().replace(/\s+/g, " ").trim();
+}
+const plateKey = p => String(p).toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+function openOnay(id){
+  const c = calls[id]; if (!c || c.durum !== "bekliyor") return;
+  curOnay = id;
+  $("oInfo").innerHTML = callInfo(c);
+  const list = Object.values(araclar).sort((a, b) => (b.son || 0) - (a.son || 0));
+  $("dlPlaka").innerHTML = list.map(a => `<option value="${esc(a.plaka)}">${esc(a.sofor || "")}</option>`).join("");
+  $("oRecent").innerHTML = list.slice(0, 8).map(a => `<button type="button" data-pick="${esc(a.plaka)}"><b>${esc(a.plaka)}</b><small>${esc(a.sofor || "")}</small></button>`).join("");
+  $("oRecentWrap").classList.toggle("hidden", !list.length);
+  $("oPlaka").value = ""; $("oSofor").value = ""; $("oErr").textContent = "";
+  setEta(5);
+  $("mOnay").classList.remove("hidden");
+  setTimeout(() => $("oPlaka").focus(), 50);
+}
+$("oRecent").addEventListener("click", e => {
+  const b = e.target.closest("[data-pick]"); if (!b) return;
+  const a = araclar[plateKey(b.dataset.pick)];
+  $("oPlaka").value = b.dataset.pick; $("oSofor").value = a ? a.sofor || "" : "";
+  $("oSofor").focus();
+});
+$("oPlaka").addEventListener("input", () => { const a = araclar[plateKey($("oPlaka").value)]; if (a && a.sofor && !$("oSofor").value) $("oSofor").value = a.sofor; });
+$("oPlaka").addEventListener("blur", () => { $("oPlaka").value = normPlate($("oPlaka").value); });
+$("oSave").onclick = saveOnay;
+
+async function saveOnay(){
+  if (!curOnay) return;
+  const plaka = normPlate($("oPlaka").value), sofor = $("oSofor").value.trim();
+  if (plateKey(plaka).length < 4) { $("oErr").textContent = "Plakayı girin (örn. 07 ABC 123)."; return; }
+  if (!sofor) { $("oErr").textContent = "Şoför adını girin."; return; }
+  if (!curEta) { $("oErr").textContent = "Tahmini varış süresini seçin."; return; }
+  const id = curOnay, eta = curEta, d = durakId;
+  $("oSave").disabled = true;
+  try{
+    const r = await runTransaction(ref(db, `cagrilar/${d}/${id}`), c => {
+      if (!c) return c;
+      if (c.durum !== "bekliyor") return;
+      return { ...c, durum: "onaylandi", plaka, sofor, eta, onayZamani: serverTimestamp(), isleyen: user.email || "" };
+    });
+    if (!r.committed) toast("Çağrı artık beklemede değil (yolcu iptal etmiş olabilir).", true);
+    else {
+      set(ref(db, `araclar/${d}/${plateKey(plaka)}`), { plaka, sofor, son: serverTimestamp() }).catch(() => {});
+      toast(`✅ Onaylandı: ${plaka} · ${sofor} · ${eta} dk`);
+    }
+    closeModals();
+  }catch(e){ $("oErr").textContent = "Kaydedilemedi: " + e.message; }
+  $("oSave").disabled = false;
+}
+
+function openRed(id){
+  const c = calls[id]; if (!c || c.durum !== "bekliyor") return;
+  curRed = id; $("rInfo").innerHTML = callInfo(c);
+  $("mRed").classList.remove("hidden");
+}
+document.querySelector(".reasons").addEventListener("click", async e => {
+  const b = e.target.closest("[data-reason]"); if (!b || !curRed) return;
+  const id = curRed, reason = b.dataset.reason;
+  try{
+    const r = await runTransaction(ref(db, `cagrilar/${durakId}/${id}`), c => {
+      if (!c) return c;
+      if (c.durum !== "bekliyor") return;
+      return { ...c, durum: "reddedildi", redSebebi: reason, redZamani: serverTimestamp(), isleyen: user.email || "" };
+    });
+    toast(r.committed ? "Çağrı reddedildi, yolcuya bildirildi." : "Çağrı artık beklemede değil.", !r.committed);
+  }catch(err){ toast("Hata: " + err.message, true); }
+  closeModals();
+});
+async function markSent(id, btn){
+  btn.disabled = true;
+  try{
+    const r = await runTransaction(ref(db, `cagrilar/${durakId}/${id}`), c => {
+      if (!c) return c;
+      if (c.durum !== "onaylandi") return;
+      return { ...c, durum: "gonderildi", gonderimZamani: serverTimestamp() };
+    });
+    if (!r.committed) toast("Bu çağrı güncellenemedi (iptal edilmiş olabilir).", true);
+  }catch(e){ toast("Hata: " + e.message, true); btn.disabled = false; }
+}
+
+/* =================== QR NOKTALARI & ÜCRETLER =================== */
+$("nAdd").onclick = async () => {
+  const ad = $("nAd").value.trim(), ac = $("nAc").value.trim();
+  if (!durakId) return toast("Durak seçin", true);
+  if (!ad) return toast("Nokta adını yazın", true);
+  const data = { ad, olusturma: serverTimestamp() }; if (ac) data.aciklama = ac;
+  try{ await push(ref(db, `noktalar/${durakId}`), data); $("nAd").value = $("nAc").value = ""; toast("Nokta eklendi"); }
+  catch(e){ toast(e.message, true); }
+};
+function qrUrl(nid){ const u = new URL($("qBase").value.trim()); u.searchParams.set("d", durakId); u.searchParams.set("n", nid); return u.href; }
+function qrDataUrl(text, size){
+  if (!window.QRCode) return "";
+  const box = document.createElement("div");
+  new QRCode(box, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
+  const c = box.querySelector("canvas"); if (c) return c.toDataURL("image/png");
+  const i = box.querySelector("img"); return i ? i.src : "";
+}
+const sortedFares = n => n && n.ucretler ? Object.values(n.ucretler).sort((a, b) => (a.sira ?? 0) - (b.sira ?? 0)) : [];
+const nf = new Intl.NumberFormat("tr-TR");
+
+function renderNoktalar(){
+  if (!durakId){ $("qGrid").innerHTML = ""; return; }
+  const rows = Object.entries(noktalar).sort(byName);
+  if (!rows.length){ $("qGrid").innerHTML = `<p class="hint">Henüz QR noktası yok. Yukarıdan ilk noktayı ekleyin.</p>`; return; }
+  try{ new URL($("qBase").value.trim()); }catch(e){ $("qGrid").innerHTML = `<p class="err">Yolcu sayfası adresi geçersiz.</p>`; return; }
+  const sel = new Set([...document.querySelectorAll("[data-sel]:checked")].map(x => x.dataset.sel));
+  $("qGrid").innerHTML = rows.map(([nid, n]) => {
+    const url = qrUrl(nid), f = sortedFares(n), img = qrDataUrl(url, 320);
+    return `<div class="qcard">
+      ${img ? `<div class="qr"><img src="${img}" alt="QR"></div>` : `<div class="hint">QR görüntüsü için internet gerekli</div>`}
+      <div class="nm">${esc(n.ad)}</div>
+      ${n.aciklama ? `<div class="hint">${esc(n.aciklama)}</div>` : ""}
+      <div class="fprev">${f.length ? f.slice(0, 3).map(x => `${esc(x.hedef)} ~${nf.format(x.ucret)} ₺`).join("<br>") + (f.length > 3 ? `<br>+${f.length - 3} daha` : "") : "Ücret girilmemiş"}</div>
+      <label><input type="checkbox" data-sel="${nid}" ${sel.has(nid) ? "checked" : ""}> Yazdırmak için seç</label>
+      <div class="acts">
+        <button class="btn sm y" data-uc="${nid}">💶 Ücretler${f.length ? ` <span class="ucnt">${f.length}</span>` : ""}</button>
+        <a class="btn sm" href="${esc(url)}" target="_blank" rel="noopener">Test et</a>
+        <button class="btn sm" data-cp="${esc(url)}">Linki kopyala</button>
+        <button class="btn sm" data-p1="${nid}">🖨️ Yazdır</button>
+        <button class="btn sm" data-ne="${nid}">Ad değiştir</button>
+        <button class="btn sm d" data-nd="${nid}">Sil</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+$("qGrid").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  try{
+    if (b.dataset.uc) openUcret(b.dataset.uc);
+    if (b.dataset.cp){ await navigator.clipboard.writeText(b.dataset.cp); toast("Kopyalandı"); }
+    if (b.dataset.p1) printPosters([b.dataset.p1]);
+    if (b.dataset.ne){
+      const n = noktalar[b.dataset.ne]; const ad = prompt("Nokta adı", n.ad); if (!ad || !ad.trim()) return;
+      await update(ref(db, `noktalar/${durakId}/${b.dataset.ne}`), { ad: ad.trim().slice(0, 80) }); toast("Güncellendi");
+    }
+    if (b.dataset.nd && confirm(`"${noktalar[b.dataset.nd].ad}" silinsin mi?\nBu noktaya basılmış QR afişleri çalışmaz hale gelir.`)){
+      await remove(ref(db, `noktalar/${durakId}/${b.dataset.nd}`)); toast("Nokta silindi");
+    }
+  }catch(err){ toast(err.message, true); }
+});
+
+let ucNokta = null;
+function uRow(h = "", u = ""){
+  const d = document.createElement("div"); d.className = "urow";
+  d.innerHTML = `<input class="inp" data-h maxlength="60" placeholder="Örn: Alanya Merkez" value="${esc(h)}">
+    <input class="inp" data-u type="number" min="1" step="10" placeholder="400" value="${esc(u)}">
+    <button class="btn sm d" title="Satırı sil">✕</button>`;
+  d.querySelector("button").onclick = () => d.remove();
+  $("uRows").appendChild(d);
+}
+function fillRows(list){ $("uRows").innerHTML = ""; list.forEach(x => uRow(x.hedef, x.ucret)); if (!list.length){ uRow(); uRow(); uRow(); } }
+function openUcret(nid){
+  ucNokta = nid; const n = noktalar[nid];
+  $("uNokta").textContent = "📍 " + n.ad;
+  fillRows(sortedFares(n));
+  const others = Object.entries(noktalar).filter(([id, x]) => id !== nid && x.ucretler);
+  $("uCopy").innerHTML = `<option value="">Başka noktadan kopyala…</option>` + others.map(([id, x]) => `<option value="${id}">${esc(x.ad)}</option>`).join("");
+  $("uCopy").classList.toggle("hidden", !others.length);
+  $("mUcret").classList.remove("hidden");
+}
+$("uCopy").onchange = () => { const id = $("uCopy").value; if (id) fillRows(sortedFares(noktalar[id])); $("uCopy").value = ""; };
+$("uAddRow").onclick = () => uRow();
+$("uSave").onclick = async () => {
+  const out = {}; let i = 0, bad = false;
+  for (const r of $("uRows").querySelectorAll(".urow")){
+    const h = r.querySelector("[data-h]").value.trim(), raw = r.querySelector("[data-u]").value, u = Number(raw);
+    if (!h && !raw) continue;
+    if (!h || !(u > 0)) { bad = true; continue; }
+    out["u" + String(i).padStart(2, "0")] = { hedef: h.slice(0, 60), ucret: Math.round(u), sira: i }; i++;
+  }
+  if (bad) return toast("Her satırda varış yeri ve geçerli bir ücret olmalı", true);
+  try{
+    await set(ref(db, `noktalar/${durakId}/${ucNokta}/ucretler`), i ? out : null);
+    closeModals(); toast(i ? `${i} ücret kaydedildi` : "Ücretler kaldırıldı");
+  }catch(e){ toast(e.message, true); }
+};
+
+const SCAN = ["Taksi çağırmak için okutun", "Scan to call a taxi", "Scannen und Taxi rufen", "Сканируйте, чтобы вызвать такси", "Scan om een taxi te bellen", "Naskenujte a zavolejte taxi", "Zeskanuj, aby zamówić taksówkę"];
+$("pAll").onclick = () => printPosters(Object.keys(noktalar));
+$("pSel").onclick = () => {
+  const ids = [...document.querySelectorAll("[data-sel]:checked")].map(x => x.dataset.sel);
+  if (!ids.length) return toast("Önce yazdırılacak noktaları seçin", true);
+  printPosters(ids);
+};
+function printPosters(ids){
+  if (!ids.length) return toast("Yazdırılacak nokta yok", true);
+  if (!window.QRCode) return toast("QR kütüphanesi yüklenemedi (internet bağlantısını kontrol edin)", true);
+  $("printArea").innerHTML = ids.map(nid => {
+    const n = noktalar[nid]; if (!n) return "";
+    return `<div class="poster">
+      <div class="ph"><div class="tx">TAXI</div><div class="sb">TAKSİ ÇAĞIR · CALL A TAXI</div></div>
+      <div class="pq"><img src="${qrDataUrl(qrUrl(nid), 600)}" alt="QR"></div>
+      <div class="langs">${SCAN.map(esc).join("<br>")}</div>
+      <div class="pn">📍 ${esc(n.ad)}</div>
+      <div class="pd">${esc(durak.ad || "")}${durak.telefon ? " · ☎ " + esc(durak.telefon) : ""}</div>
+    </div>`;
+  }).join("");
+  const imgs = [...$("printArea").querySelectorAll("img")];
+  Promise.all(imgs.map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => window.print(), 150));
+}
+
+/* =================== DURAKLAR (yönetici) =================== */
+function renderDurakSelects(){
+  const rows = Object.entries(duraklar).sort(byName);
+  const opts = rows.map(([id, d]) => `<option value="${id}">${esc(d.ad)}${d.aktif ? "" : " (kapalı)"}</option>`).join("");
+  $("durakSel").innerHTML = opts || `<option value="">— durak yok —</option>`;
+  if (durakId) $("durakSel").value = durakId;
+  const v = $("uDurak").value;
+  $("uDurak").innerHTML = rows.map(([id, d]) => `<option value="${id}">${esc(d.ad)}</option>`).join("") || `<option value="">Önce durak oluşturun</option>`;
+  if (v && duraklar[v]) $("uDurak").value = v; else if (durakId) $("uDurak").value = durakId;
+}
+$("dAdd").onclick = async () => {
+  const ad = $("dAd").value.trim(), tel = $("dTel").value.trim();
+  if (!ad) return toast("Durak adını yazın", true);
+  try{
+    const r = await push(ref(db, "duraklar"), { ad, telefon: tel, aktif: true, olusturma: serverTimestamp() });
+    $("dAd").value = $("dTel").value = "";
+    toast("Durak oluşturuldu. Şimdi bu durak için bir kullanıcı oluşturun.");
+    if (r && r.key){ selectDurak(r.key); $("uDurak").value = r.key; }
+  }catch(e){ toast(e.message, true); }
+};
+function renderDuraklar(){
+  const rows = Object.entries(duraklar).sort(byName);
+  const uc = id => Object.values(kullanicilar).filter(k => k.durakId === id).length;
+  $("dList").innerHTML = rows.length ? rows.map(([id, d]) => `
+    <tr>
+      <td><b>${esc(d.ad)}</b></td>
+      <td>${esc(d.telefon || "-")}</td>
+      <td><span class="pill ${d.aktif ? "on" : "off"}">${d.aktif ? "Açık" : "Kapalı"}</span></td>
+      <td>${uc(id)}</td>
+      <td><div class="acts">
+        <button class="btn sm y" data-dp="${id}">Paneli aç</button>
+        <button class="btn sm" data-de="${id}">Düzenle</button>
+        <button class="btn sm" data-dt="${id}">${d.aktif ? "Kapat" : "Aç"}</button>
+        <button class="btn sm d" data-dd="${id}">Sil</button>
+      </div></td>
+    </tr>`).join("") : `<tr><td colspan="5" class="hint">Henüz durak yok.</td></tr>`;
+}
+$("dList").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = b.dataset.dp || b.dataset.de || b.dataset.dt || b.dataset.dd; const d = duraklar[id]; if (!d) return;
+  try{
+    if (b.dataset.dp){ selectDurak(id); showTab("vCalls"); }
+    if (b.dataset.de){
+      const ad = prompt("Durak adı", d.ad); if (ad === null) return;
+      const tel = prompt("Telefon", d.telefon || ""); if (tel === null) return;
+      await update(ref(db, `duraklar/${id}`), { ad: (ad.trim() || d.ad).slice(0, 80), telefon: tel.trim().slice(0, 25) });
+      toast("Güncellendi");
+    }
+    if (b.dataset.dt) await set(ref(db, `duraklar/${id}/aktif`), !d.aktif);
+    if (b.dataset.dd){
+      const users = Object.entries(kullanicilar).filter(([, k]) => k.durakId === id);
+      if (prompt(`"${d.ad}" durağı silinecek:\n• tüm QR noktaları ve ücretleri\n• çağrı geçmişi ve araç listesi\n• ${users.length} kullanıcının panel erişimi\n\nOnaylamak için SIL yazın.`) !== "SIL") return;
+      const upd = { [`duraklar/${id}`]: null, [`noktalar/${id}`]: null, [`araclar/${id}`]: null, [`cagrilar/${id}`]: null };
+      users.forEach(([uid]) => upd[`kullanicilar/${uid}`] = null);
+      await update(ref(db), upd);
+      toast("Durak silindi");
+    }
+  }catch(err){ toast(err.message, true); }
+});
+
+/* =================== KULLANICILAR (yönetici) =================== */
+$("uAdd").onclick = async () => {
+  const dId = $("uDurak").value, email = $("uEmail").value.trim().toLowerCase(), pass = $("uPass").value;
+  if (!dId) return toast("Önce durak oluşturun", true);
+  if (!email || pass.length < 6) return toast("E-posta ve en az 6 karakterli şifre girin", true);
+  $("uAdd").disabled = true;
+  try{
+    const cred = await createUserWithEmailAndPassword(auth2, email, pass);
+    await signOut(auth2);
+    await set(ref(db, `kullanicilar/${cred.user.uid}`), { durakId: dId, eposta: email, olusturma: serverTimestamp() });
+    $("uEmail").value = $("uPass").value = "";
+    toast(`Kullanıcı oluşturuldu: ${email}`);
+  }catch(e){
+    toast(e.code === "auth/email-already-in-use" ? "Bu e-posta zaten kayıtlı (silinmiş bir kullanıcıysa Firebase Console → Authentication'dan tamamen silin)" :
+          e.code === "auth/invalid-email" ? "Geçersiz e-posta" : e.message, true);
+  }
+  $("uAdd").disabled = false;
+};
+function renderUsers(){
+  const rows = Object.entries(kullanicilar).sort((a, b) => (a[1].eposta || "").localeCompare(b[1].eposta || ""));
+  $("uList").innerHTML = rows.length ? rows.map(([uid, k]) => `
+    <tr>
+      <td>${esc(k.eposta)}</td>
+      <td>${esc(duraklar[k.durakId] ? duraklar[k.durakId].ad : "— (silinmiş durak)")}</td>
+      <td><div class="acts">
+        <button class="btn sm" data-ur="${esc(k.eposta)}">Şifre sıfırlama e-postası</button>
+        <button class="btn sm d" data-ux="${uid}">Sil</button>
+      </div></td>
+    </tr>`).join("") : `<tr><td colspan="3" class="hint">Henüz kullanıcı yok.</td></tr>`;
+}
+let udUid = null;
+$("uList").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.ur){
+    try{ await sendPasswordResetEmail(auth, b.dataset.ur); toast("Şifre sıfırlama e-postası gönderildi"); }catch(err){ toast(err.message, true); }
+  }
+  if (b.dataset.ux){
+    udUid = b.dataset.ux; const k = kullanicilar[udUid];
+    $("udInfo").textContent = `${k.eposta} · ${duraklar[k.durakId] ? duraklar[k.durakId].ad : "—"}`;
+    $("udPass").value = ""; $("udErr").textContent = "";
+    $("mUserDel").classList.remove("hidden");
+    setTimeout(() => $("udPass").focus(), 50);
+  }
+});
+$("udOk").onclick = async () => {
+  const k = kullanicilar[udUid]; if (!k) return closeModals();
+  const pw = $("udPass").value;
+  $("udOk").disabled = true; $("udErr").textContent = "";
+  let full = false;
+  if (pw){
+    try{
+      const c = await signInWithEmailAndPassword(auth2, k.eposta, pw);
+      await deleteUser(c.user); full = true;
+    }catch(err){
+      $("udErr").textContent = "Şifre doğrulanamadı. Şifreyi boş bırakırsanız yalnızca erişim kaldırılır.";
+      $("udOk").disabled = false; try{ await signOut(auth2); }catch(e){}
+      return;
+    }
+  }
+  try{
+    await remove(ref(db, `kullanicilar/${udUid}`));
+    closeModals();
+    toast(full ? `${k.eposta} tamamen silindi` : `${k.eposta} için panel erişimi kaldırıldı`);
+  }catch(err){ $("udErr").textContent = err.message; }
+  $("udOk").disabled = false;
+};
+
+/* =================== SES, BİLDİRİM, EKRAN =================== */
+let actx = null;
+function unlockAudio(){ try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); }catch(e){} }
+function beep(f, d, w = 0, v = 0.5, type = "square"){
+  if (!actx) return;
+  const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + w;
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(v, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + d);
+  o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + d + 0.05);
+}
+function sndNew(){ unlockAudio(); beep(988, .14, 0); beep(1319, .14, .17); beep(988, .14, .34); beep(1319, .3, .51); }
+function sndCancel(){ unlockAudio(); beep(440, .35, 0, .5, "sawtooth"); beep(330, .5, .4, .5, "sawtooth"); }
+function alarmLoop(){
+  if (!soundOn || now() < mutedUntil) return;
+  if (Object.values(calls).some(c => c.durum === "bekliyor")) sndNew();
+}
+$("btnTest").onclick = () => sndNew();
+$("btnMute").onclick = () => {
+  if (isAdmin){ soundOn = !soundOn; mutedUntil = 0; }
+  else mutedUntil = mutedUntil > now() ? 0 : now() + 60000;
+  updateMuteBtn();
+};
+function updateMuteBtn(){
+  if (isAdmin){
+    $("btnMute").textContent = soundOn ? "🔔 Alarm açık" : "🔕 Alarm kapalı";
+    $("btnMute").classList.toggle("muted", !soundOn);
+    return;
+  }
+  const m = mutedUntil > now();
+  $("btnMute").textContent = m ? "🔇 1 dk susturuldu" : "🔊 Ses açık";
+  $("btnMute").classList.toggle("muted", m);
+}
+function notify(title, body){
+  try{ if (soundOn && "Notification" in window && Notification.permission === "granted" && document.hidden) new Notification(title, { body, tag: "taksi-" + Date.now() }); }catch(e){}
+}
+let wakeLock = null;
+async function keepAwake(){ try{ if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){} }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && started){ keepAwake(); unlockAudio(); } });
+
+let toastTimer = null;
+function toast(msg, bad = false, ms = 4000){
+  const el = $("toast"); el.textContent = msg; el.classList.toggle("bad", bad); el.classList.remove("hidden");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), ms);
+}
+</script>
+</body>
+</html>
