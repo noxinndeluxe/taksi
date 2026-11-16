@@ -188,7 +188,7 @@ function applyI18n(){
 }
 
 /* ---------------- Firebase ---------------- */
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, "yolcu"); // her sayfa ayrı oturum
 const auth = getAuth(app);
 const db = getDatabase(app);
 
