@@ -189,7 +189,7 @@ const { initializeApp } = FA;
 const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } = FU;
 const { getDatabase, ref, get, set, push, update, remove, onValue, serverTimestamp } = FD;
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, "yonetim"); // her sayfa ayrı oturum
 const auth = getAuth(app);
 const db = getDatabase(app);
 // Yeni kullanıcı oluştururken yöneticinin oturumu düşmesin diye ikinci örnek
