@@ -1,0 +1,182 @@
+{
+  "rules": {
+    "adminler": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "kullanicilar": {
+      ".read": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['durakId', 'eposta'])",
+        "durakId": {
+          ".validate": "newData.isString() && newData.val().length <= 40 && newData.val().length >= 1"
+        },
+        "eposta": {
+          ".validate": "newData.isString() && newData.val().length <= 120 && newData.val().length >= 3"
+        },
+        "olusturma": {
+          ".validate": "newData.isNumber()"
+        },
+        "$diger": {
+          ".validate": false
+        }
+      }
+    },
+    "duraklar": {
+      ".read": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+      "$durakId": {
+        ".read": true,
+        ".write": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['ad', 'telefon', 'aktif'])",
+        "ad": {
+          ".validate": "newData.isString() && newData.val().length <= 80 && newData.val().length >= 1"
+        },
+        "telefon": {
+          ".validate": "newData.isString() && newData.val().length <= 25"
+        },
+        "aktif": {
+          ".write": "auth != null && root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId",
+          ".validate": "newData.isBoolean()"
+        },
+        "olusturma": {
+          ".validate": "newData.isNumber()"
+        },
+        "$diger": {
+          ".validate": false
+        }
+      }
+    },
+    "noktalar": {
+      "$durakId": {
+        ".read": "auth != null && (root.child('adminler').child(auth.uid).val() === true || root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId)",
+        ".write": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+        "$noktaId": {
+          ".read": true,
+          ".validate": "newData.hasChildren(['ad'])",
+          "ad": {
+            ".validate": "newData.isString() && newData.val().length <= 80 && newData.val().length >= 1"
+          },
+          "aciklama": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
+          "olusturma": {
+            ".validate": "newData.isNumber()"
+          },
+          "$diger": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "araclar": {
+      "$durakId": {
+        ".read": "auth != null && (root.child('adminler').child(auth.uid).val() === true || root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId)",
+        ".write": "auth != null && (root.child('adminler').child(auth.uid).val() === true || root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId)",
+        "$plakaKey": {
+          ".validate": "newData.hasChildren(['plaka', 'sofor'])",
+          "plaka": {
+            ".validate": "newData.isString() && newData.val().length <= 15 && newData.val().length >= 2"
+          },
+          "sofor": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "son": {
+            ".validate": "newData.isNumber()"
+          },
+          "$diger": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "yolcuSon": {
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.val() === now && (!data.exists() || now - data.val() > 60000)"
+      }
+    },
+    "cagrilar": {
+      "$durakId": {
+        ".read": "auth != null && (root.child('adminler').child(auth.uid).val() === true || root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId)",
+        ".write": "auth != null && root.child('adminler').child(auth.uid).val() === true",
+        ".indexOn": [
+          "olusturma"
+        ],
+        "$cagriId": {
+          ".read": "auth != null && data.child('yolcuUid').val() === auth.uid",
+          ".write": "auth != null && (root.child('kullanicilar').child(auth.uid).child('durakId').val() === $durakId || root.child('adminler').child(auth.uid).val() === true || (!data.exists() && newData.child('yolcuUid').val() === auth.uid && newData.child('durum').val() === 'bekliyor' && newData.child('olusturma').val() === now && root.child('duraklar').child($durakId).child('aktif').val() === true && root.child('noktalar').child($durakId).child(newData.child('noktaId').val()).exists() && newData.parent().parent().parent().child('yolcuSon').child(auth.uid).val() === now) || (data.exists() && data.child('yolcuUid').val() === auth.uid && newData.child('yolcuUid').val() === auth.uid && newData.child('durum').val() === 'iptal' && (data.child('durum').val() === 'bekliyor' || data.child('durum').val() === 'onaylandi') && now - data.child('olusturma').val() <= 65000))",
+          ".validate": "newData.hasChildren(['yolcuUid', 'noktaId', 'telefon', 'durum', 'olusturma'])",
+          "yolcuUid": {
+            ".validate": "newData.isString() && newData.val().length <= 128 && newData.val().length >= 1"
+          },
+          "noktaId": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && newData.val().length >= 1"
+          },
+          "noktaAd": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "isim": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "telefon": {
+            ".validate": "newData.isString() && newData.val().matches(/^\\+?[0-9 ()\\-]{6,20}$/)"
+          },
+          "not": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
+          "dil": {
+            ".validate": "newData.isString() && newData.val().length <= 5"
+          },
+          "durum": {
+            ".validate": "newData.isString() && newData.val().matches(/^(bekliyor|onaylandi|reddedildi|iptal|gonderildi)$/)"
+          },
+          "olusturma": {
+            ".validate": "newData.isNumber()"
+          },
+          "lat": {
+            ".validate": "newData.isNumber()"
+          },
+          "lng": {
+            ".validate": "newData.isNumber()"
+          },
+          "dogruluk": {
+            ".validate": "newData.isNumber()"
+          },
+          "plaka": {
+            ".validate": "newData.isString() && newData.val().length <= 15"
+          },
+          "sofor": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "eta": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 120"
+          },
+          "onayZamani": {
+            ".validate": "newData.isNumber()"
+          },
+          "gonderimZamani": {
+            ".validate": "newData.isNumber()"
+          },
+          "redZamani": {
+            ".validate": "newData.isNumber()"
+          },
+          "iptalZamani": {
+            ".validate": "newData.isNumber()"
+          },
+          "redSebebi": {
+            ".validate": "newData.isString() && newData.val().matches(/^(arac_yok|bolge_disi|diger)$/)"
+          },
+          "isleyen": {
+            ".validate": "newData.isString() && newData.val().length <= 120"
+          },
+          "$diger": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}

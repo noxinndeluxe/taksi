@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taksi Çağır · Yönetim</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--y:#FFC20E;--bg:#f4f4f5;--card:#fff;--line:#e4e4e7;--txt:#18181b;--mut:#71717a;--red:#dc2626;--green:#16a34a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer}
+.inp,select.inp{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;background:#fff;font-family:inherit}
+.inp:focus{outline:2px solid var(--y);border-color:var(--y)}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:700;background:#18181b;color:#fff;white-space:nowrap}
+.btn.y{background:var(--y);color:#111}
+.btn.s{background:#fff;color:var(--txt);border:1px solid var(--line)}
+.btn.d{background:#fff;color:var(--red);border:1px solid #fecaca}
+.btn.sm{padding:7px 10px;font-size:13px}
+.err{color:var(--red);font-size:14px}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lbox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px}
+.uidbox{background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:10px;font-size:13px;word-break:break-all}
+header{background:#18181b;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:18px;margin-right:auto;display:flex;gap:10px;align-items:center}
+nav{display:flex;gap:6px}
+nav button{background:transparent;color:#d4d4d8;border:1px solid #3f3f46;border-radius:10px;padding:9px 14px;font-weight:700}
+nav button.act{background:var(--y);color:#111;border-color:var(--y)}
+main{max-width:1150px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:18px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-size:17px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}
+.form label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;color:var(--mut);padding:8px;border-bottom:1px solid var(--line)}
+td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:12px;font-weight:800;border-radius:20px;padding:3px 9px}
+.pill.on{background:#dcfce7;color:#166534}.pill.off{background:#fee2e2;color:#991b1b}
+.hint{font-size:13px;color:var(--mut);line-height:1.5}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.qcard{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.qcard .qr img,.qcard .qr canvas{width:170px;height:170px}
+.qcard .nm{font-weight:800}
+.qcard .url{font-size:11px;color:var(--mut);word-break:break-all}
+.qcard .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.qcard label{font-size:13px;display:flex;gap:6px;align-items:center}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#18181b;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:99}
+#toast.bad{background:var(--red)}
+/* Yazdırma afişi */
+#printArea{display:none}
+.poster{width:148mm;min-height:200mm;margin:0 auto;border:3px solid #111;border-radius:8mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;font-family:Arial,sans-serif;page-break-after:always;break-after:page}
+.poster .ph{width:100%;background:#FFC20E;padding:7mm 5mm 5mm;text-align:center;border-bottom:3px solid #111;
+  background-image:repeating-linear-gradient(90deg,#111 0 8mm,#FFC20E 8mm 16mm);background-size:100% 4mm;background-repeat:no-repeat;background-position:bottom}
+.poster .ph .tx{font-size:20mm;font-weight:900;letter-spacing:2mm;line-height:1}
+.poster .ph .sb{font-size:6mm;font-weight:800;margin:2mm 0 4mm}
+.poster .pq{margin:7mm 0 4mm}
+.poster .pq img{width:78mm;height:78mm;display:block}
+.poster .langs{font-size:3.6mm;line-height:1.55;text-align:center;color:#222;padding:0 8mm}
+.poster .pn{margin-top:5mm;font-size:7mm;font-weight:900;text-align:center;padding:0 6mm}
+.poster .pd{margin:2mm 0 6mm;font-size:4.5mm;color:#333;text-align:center}
+@media print{
+  @page{size:A5 portrait;margin:6mm}
+  body{background:#fff}
+  body > *:not(#printArea){display:none!important}
+  #printArea{display:block}
+}
+</style>
+</head>
+<body>
+<div id="bootErr" style="display:none;position:fixed;inset:0;z-index:99999;background:#111;color:#f5f5f5;font:15px/1.6 system-ui,Arial,sans-serif;padding:28px;overflow:auto"></div>
+<script>
+(function(){
+  function show(m){
+    if (window.__appReady) return;
+    var b = document.getElementById("bootErr"); if (!b) return;
+    var fileHint = location.protocol === "file:" ? "<p style='margin-top:12px;color:#fde68a'>Not: Sayfayı doğrudan bilgisayardan açtınız. index.html, durak.html, yonetim.html, firebase-config.js ve demo.js dosyalarının <b>aynı klasörde</b> olduğundan emin olun.</p>" : "";
+    b.innerHTML = "<div style='max-width:640px;margin:0 auto'><div style='font-size:42px'>⚠️</div><h2 style='margin:8px 0 12px'>Sayfa başlatılamadı</h2><div style='background:#222;border:1px solid #444;border-radius:10px;padding:12px;font-family:monospace;font-size:13px;white-space:pre-wrap'>" + String(m).replace(/</g,"&lt;") + "</div>" + fileHint + "<p style='margin-top:12px;color:#aaa'>İnternet bağlantınızı ve firebase-config.js dosyasını kontrol edin. Firebase kurulmadan denemek için firebase-config.js içindeki apiKey değerini \"BURAYA_API_KEY\" olarak bırakın; sistem demo modunda açılır.</p></div>";
+    b.style.display = "block";
+  }
+  window.__bootFail = show;
+  window.addEventListener("error", function(e){ show(e.message || "Bilinmeyen hata"); });
+  window.addEventListener("unhandledrejection", function(e){ var r = e.reason; show(r && (r.message || r.code) || String(r)); });
+  setTimeout(function(){ show("Sayfa 12 saniye içinde başlatılamadı. İnternet bağlantısı olmayabilir ya da Firebase'e ulaşılamıyor olabilir."); }, 12000);
+})();
+</script>
+<script src="firebase-config.js"></script>
+<script src="demo.js"></script>
+
+<section id="login" class="hidden">
+  <div class="lbox">
+    <h1 style="font-size:20px">🚕 Yönetim Girişi</h1>
+    <input id="lEmail" class="inp" type="email" placeholder="E-posta" autocomplete="username">
+    <input id="lPass" class="inp" type="password" placeholder="Şifre" autocomplete="current-password">
+    <div id="lErr" class="err"></div>
+    <div id="uidBox" class="uidbox hidden"></div>
+    <button id="lBtn" class="btn y">Giriş</button>
+    <button id="lOut" class="btn s hidden">Çıkış yap</button>
+  </div>
+</section>
+
+<div id="app" class="hidden">
+  <header>
+    <h1>🚕 Taksi Çağır · Yönetim</h1>
+    <nav>
+      <button data-tab="tDurak" class="act">Duraklar</button>
+      <button data-tab="tUser">Kullanıcılar</button>
+      <button data-tab="tQr">QR Noktaları</button>
+    </nav>
+    <button id="btnOut" class="btn s sm">Çıkış</button>
+  </header>
+
+  <main>
+    <!-- DURAKLAR -->
+    <div id="tDurak" class="tab">
+      <div class="panel">
+        <h2>Yeni durak ekle</h2>
+        <div class="form">
+          <label>Durak adı<input id="dAd" class="inp" placeholder="Örn: Konaklı Taksi"></label>
+          <label>Telefon (yolcuya gösterilir)<input id="dTel" class="inp" placeholder="0242 000 00 00"></label>
+          <button id="dAdd" class="btn y">+ Durak ekle</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Duraklar</h2>
+        <table><thead><tr><th>Durak</th><th>Telefon</th><th>Durum</th><th>Nokta</th><th></th></tr></thead><tbody id="dList"></tbody></table>
+      </div>
+    </div>
+
+    <!-- KULLANICILAR -->
+    <div id="tUser" class="tab hidden">
+      <div class="panel">
+        <h2>Durak kullanıcısı oluştur</h2>
+        <p class="hint">Durak panelinde (durak.html) bu e-posta ve şifreyle giriş yapılır. Aynı durağa birden fazla kullanıcı tanımlayabilirsiniz.</p>
+        <div class="form">
+          <label>Durak<select id="uDurak" class="inp"></select></label>
+          <label>E-posta<input id="uEmail" class="inp" type="email" placeholder="konakli@durak.com"></label>
+          <label>Şifre (en az 6 karakter)<input id="uPass" class="inp" type="text"></label>
+          <button id="uAdd" class="btn y">+ Kullanıcı oluştur</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Kullanıcılar</h2>
+        <table><thead><tr><th>E-posta</th><th>Durak</th><th></th></tr></thead><tbody id="uList"></tbody></table>
+        <p class="hint">"Erişimi kaldır" kullanıcının durak paneline girmesini engeller. Hesabı tamamen silmek için Firebase Console → Authentication → Users bölümünü kullanın.</p>
+      </div>
+    </div>
+
+    <!-- QR -->
+    <div id="tQr" class="tab hidden">
+      <div class="panel">
+        <h2>QR noktaları</h2>
+        <div class="form">
+          <label>Durak<select id="qDurak" class="inp"></select></label>
+          <label style="grid-column:span 2">Yolcu sayfası adresi (QR bu adrese yönlenir)<input id="qBase" class="inp"></label>
+        </div>
+        <div class="form">
+          <label>Nokta adı (yolcu ve durak görür)<input id="nAd" class="inp" placeholder="Örn: Noxinn Deluxe Hotel – Lobi"></label>
+          <label>Açıklama (isteğe bağlı)<input id="nAc" class="inp" placeholder="Örn: Ana giriş kapısı"></label>
+          <button id="nAdd" class="btn y">+ Nokta ekle</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="pSel" class="btn s">🖨️ Seçilileri yazdır</button>
+          <button id="pAll" class="btn">🖨️ Tümünü yazdır</button>
+        </div>
+        <div id="qGrid" class="qgrid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="printArea"></div>
+<div id="toast" class="hidden"></div>
+
+<script type="module">
+const CFG = window.FIREBASE_CONFIG || {};
+const DEMO = new URLSearchParams(location.search).has("demo") || !CFG.apiKey || String(CFG.apiKey).startsWith("BURAYA");
+let FA, FU, FD;
+if (DEMO){
+  if (!window.DemoFB) throw new Error("demo.js dosyası bulunamadı. Tüm dosyaların aynı klasörde olduğundan emin olun.");
+  FA = FU = FD = window.DemoFB;
+} else {
+  const V = "https://www.gstatic.com/firebasejs/10.12.2/";
+  [FA, FU, FD] = await Promise.all([import(V + "firebase-app.js"), import(V + "firebase-auth.js"), import(V + "firebase-database.js")]);
+}
+const firebaseConfig = CFG;
+const { initializeApp } = FA;
+const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } = FU;
+const { getDatabase, ref, get, set, push, update, remove, onValue, serverTimestamp } = FD;
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+// Yeni kullanıcı oluştururken yöneticinin oturumu düşmesin diye ikinci örnek
+const app2 = initializeApp(firebaseConfig, "ikincil");
+const auth2 = getAuth(app2);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let duraklar = {}, kullanicilar = {}, noktalar = {}, noktaCount = {}, unsubN = null, started = false;
+
+/* ---------- Giriş ---------- */
+$("lBtn").onclick = async () => {
+  $("lErr").textContent = "";
+  try{ await signInWithEmailAndPassword(auth, $("lEmail").value.trim(), $("lPass").value); }
+  catch(e){ $("lErr").textContent = "E-posta veya şifre hatalı."; }
+};
+$("lPass").addEventListener("keydown", e => { if (e.key === "Enter") $("lBtn").click(); });
+if (DEMO){ $("lEmail").value = "admin@demo.com"; $("lPass").value = "123456"; window.DemoFB.banner("Giriş: admin@demo.com / 123456 · <a style='color:#111;font-weight:800' href='durak.html' target='_blank'>Durak paneli</a> · <a style='color:#111;font-weight:800' href='index.html' target='_blank'>Yolcu</a>"); }
+$("lOut").onclick = $("btnOut").onclick = () => signOut(auth).then(() => location.reload());
+
+onAuthStateChanged(auth, async u => {
+  window.__appReady = true;
+  if (!u || u.isAnonymous){ $("login").classList.remove("hidden"); $("app").classList.add("hidden"); return; }
+  let ok = false;
+  try{ ok = (await get(ref(db, `adminler/${u.uid}`))).val() === true; }catch(e){}
+  if (!ok){
+    $("login").classList.remove("hidden");
+    $("lErr").textContent = "Bu hesabın yönetici yetkisi yok.";
+    $("uidBox").innerHTML = `İlk kurulumda: Firebase Console → Realtime Database → Data bölümünde <b>adminler</b> altına şu anahtarı <b>true</b> değeriyle ekleyin:<br><br><b>${esc(u.uid)}</b>`;
+    $("uidBox").classList.remove("hidden"); $("lOut").classList.remove("hidden");
+    return;
+  }
+  $("login").classList.add("hidden"); $("app").classList.remove("hidden");
+  if (!started){ started = true; startApp(); }
+});
+
+/* ---------- Sekmeler ---------- */
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("act", x === b));
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("hidden", t.id !== b.dataset.tab));
+});
+function goTab(id){ document.querySelector(`nav button[data-tab="${id}"]`).click(); }
+
+function startApp(){
+  $("qBase").value = localStorage.getItem("taksi_base") || new URL("index.html", location.href).href;
+  $("qBase").onchange = () => { localStorage.setItem("taksi_base", $("qBase").value.trim()); renderNoktalar(); };
+  onValue(ref(db, "duraklar"), s => { duraklar = s.val() || {}; renderDuraklar(); renderSelects(); renderUsers(); });
+  onValue(ref(db, "kullanicilar"), s => { kullanicilar = s.val() || {}; renderUsers(); });
+}
+
+/* ---------- Duraklar ---------- */
+$("dAdd").onclick = async () => {
+  const ad = $("dAd").value.trim(), tel = $("dTel").value.trim();
+  if (!ad) return toast("Durak adını yazın", true);
+  try{ await push(ref(db, "duraklar"), { ad, telefon: tel, aktif: true, olusturma: serverTimestamp() }); $("dAd").value = $("dTel").value = ""; toast("Durak eklendi"); }
+  catch(e){ toast(e.message, true); }
+};
+async function loadCounts(){
+  for (const id of Object.keys(duraklar)){
+    try{ const s = await get(ref(db, `noktalar/${id}`)); noktaCount[id] = s.exists() ? Object.keys(s.val()).length : 0; }catch(e){ noktaCount[id] = "?"; }
+  }
+  renderDuraklar(false);
+}
+function renderDuraklar(fetch = true){
+  const rows = Object.entries(duraklar).sort((a, b) => (a[1].ad || "").localeCompare(b[1].ad || "", "tr"));
+  $("dList").innerHTML = rows.length ? rows.map(([id, d]) => `
+    <tr>
+      <td><b>${esc(d.ad)}</b><div class="hint" style="font-size:11px">${esc(id)}</div></td>
+      <td>${esc(d.telefon || "-")}</td>
+      <td><span class="pill ${d.aktif ? "on" : "off"}">${d.aktif ? "Açık" : "Kapalı"}</span></td>
+      <td>${noktaCount[id] ?? "…"}</td>
+      <td><div class="acts">
+        <button class="btn s sm" data-dq="${id}">QR noktaları</button>
+        <button class="btn s sm" data-de="${id}">Düzenle</button>
+        <button class="btn s sm" data-dt="${id}">${d.aktif ? "Kapat" : "Aç"}</button>
+        <button class="btn d sm" data-dd="${id}">Sil</button>
+      </div></td>
+    </tr>`).join("") : `<tr><td colspan="5" class="hint">Henüz durak yok.</td></tr>`;
+  if (fetch) loadCounts();
+}
+$("dList").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = b.dataset.dq || b.dataset.de || b.dataset.dt || b.dataset.dd; const d = duraklar[id]; if (!d) return;
+  try{
+    if (b.dataset.dq){ $("qDurak").value = id; selectQrDurak(); goTab("tQr"); }
+    if (b.dataset.de){
+      const ad = prompt("Durak adı", d.ad); if (ad === null) return;
+      const tel = prompt("Telefon", d.telefon || ""); if (tel === null) return;
+      await update(ref(db, `duraklar/${id}`), { ad: ad.trim() || d.ad, telefon: tel.trim() });
+      toast("Güncellendi");
+    }
+    if (b.dataset.dt) await set(ref(db, `duraklar/${id}/aktif`), !d.aktif);
+    if (b.dataset.dd){
+      if (prompt(`"${d.ad}" durağı, tüm QR noktaları ve çağrı geçmişi silinecek. Onaylamak için SIL yazın.`) !== "SIL") return;
+      const upd = { [`duraklar/${id}`]: null, [`noktalar/${id}`]: null, [`araclar/${id}`]: null, [`cagrilar/${id}`]: null };
+      for (const [uid, k] of Object.entries(kullanicilar)) if (k.durakId === id) upd[`kullanicilar/${uid}`] = null;
+      await update(ref(db), upd);
+      toast("Durak silindi");
+    }
+  }catch(err){ toast(err.message, true); }
+});
+
+function renderSelects(){
+  const opts = Object.entries(duraklar).sort((a, b) => (a[1].ad || "").localeCompare(b[1].ad || "", "tr"))
+    .map(([id, d]) => `<option value="${id}">${esc(d.ad)}</option>`).join("");
+  ["uDurak", "qDurak"].forEach(s => { const v = $(s).value; $(s).innerHTML = opts || `<option value="">Önce durak ekleyin</option>`; if (v && duraklar[v]) $(s).value = v; });
+  selectQrDurak();
+}
+
+/* ---------- Kullanıcılar ---------- */
+$("uAdd").onclick = async () => {
+  const durakId = $("uDurak").value, email = $("uEmail").value.trim(), pass = $("uPass").value;
+  if (!durakId) return toast("Önce durak ekleyin", true);
+  if (!email || pass.length < 6) return toast("E-posta ve en az 6 karakterli şifre girin", true);
+  $("uAdd").disabled = true;
+  try{
+    const cred = await createUserWithEmailAndPassword(auth2, email, pass);
+    await signOut(auth2);
+    await set(ref(db, `kullanicilar/${cred.user.uid}`), { durakId, eposta: email, olusturma: serverTimestamp() });
+    $("uEmail").value = $("uPass").value = "";
+    toast("Kullanıcı oluşturuldu");
+  }catch(e){
+    toast(e.code === "auth/email-already-in-use" ? "Bu e-posta zaten kayıtlı" : e.message, true);
+  }
+  $("uAdd").disabled = false;
+};
+function renderUsers(){
+  const rows = Object.entries(kullanicilar);
+  $("uList").innerHTML = rows.length ? rows.map(([uid, k]) => `
+    <tr>
+      <td>${esc(k.eposta)}</td>
+      <td>${esc(duraklar[k.durakId] ? duraklar[k.durakId].ad : "— (silinmiş durak)")}</td>
+      <td><div class="acts">
+        <button class="btn s sm" data-ur="${esc(k.eposta)}">Şifre sıfırlama e-postası</button>
+        <button class="btn d sm" data-ux="${uid}">Erişimi kaldır</button>
+      </div></td>
+    </tr>`).join("") : `<tr><td colspan="3" class="hint">Henüz kullanıcı yok.</td></tr>`;
+}
+$("uList").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  try{
+    if (b.dataset.ur){ await sendPasswordResetEmail(auth, b.dataset.ur); toast("Şifre sıfırlama e-postası gönderildi"); }
+    if (b.dataset.ux && confirm("Bu kullanıcının durak paneline erişimi kaldırılsın mı?")){ await remove(ref(db, `kullanicilar/${b.dataset.ux}`)); toast("Erişim kaldırıldı"); }
+  }catch(err){ toast(err.message, true); }
+});
+
+/* ---------- QR noktaları ---------- */
+$("qDurak").onchange = selectQrDurak;
+let qrDurak = null;
+function selectQrDurak(){
+  const id = $("qDurak").value;
+  if (id === qrDurak) return;
+  qrDurak = id;
+  if (unsubN){ unsubN(); unsubN = null; }
+  noktalar = {}; renderNoktalar();
+  if (!id) return;
+  unsubN = onValue(ref(db, `noktalar/${id}`), s => { noktalar = s.val() || {}; noktaCount[id] = Object.keys(noktalar).length; renderNoktalar(); });
+}
+$("nAdd").onclick = async () => {
+  const ad = $("nAd").value.trim(), ac = $("nAc").value.trim();
+  if (!qrDurak) return toast("Durak seçin", true);
+  if (!ad) return toast("Nokta adını yazın", true);
+  const data = { ad, olusturma: serverTimestamp() }; if (ac) data.aciklama = ac;
+  try{ await push(ref(db, `noktalar/${qrDurak}`), data); $("nAd").value = $("nAc").value = ""; toast("Nokta eklendi"); }
+  catch(e){ toast(e.message, true); }
+};
+const qrUrl = nid => { const base = $("qBase").value.trim(); const u = new URL(base); u.searchParams.set("d", qrDurak); u.searchParams.set("n", nid); return u.href; };
+
+function qrDataUrl(text, size){
+  const box = document.createElement("div");
+  new QRCode(box, { text, width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
+  const c = box.querySelector("canvas");
+  if (c) return c.toDataURL("image/png");
+  const i = box.querySelector("img"); return i ? i.src : "";
+}
+function renderNoktalar(){
+  const rows = Object.entries(noktalar).sort((a, b) => (a[1].ad || "").localeCompare(b[1].ad || "", "tr"));
+  if (!rows.length){ $("qGrid").innerHTML = `<p class="hint">Bu durağa henüz QR noktası eklenmedi.</p>`; return; }
+  let urlOk = true; try{ new URL($("qBase").value.trim()); }catch(e){ urlOk = false; }
+  if (!urlOk){ $("qGrid").innerHTML = `<p class="err">Yolcu sayfası adresi geçersiz.</p>`; return; }
+  $("qGrid").innerHTML = rows.map(([nid, n]) => {
+    const url = qrUrl(nid);
+    return `<div class="qcard">
+      <div class="qr"><img src="${qrDataUrl(url, 340)}" alt="QR"></div>
+      <div class="nm">${esc(n.ad)}</div>
+      ${n.aciklama ? `<div class="hint">${esc(n.aciklama)}</div>` : ""}
+      <div class="url">${esc(url)}</div>
+      <label><input type="checkbox" data-sel="${nid}"> Yazdırmak için seç</label>
+      <div class="acts">
+        <a class="btn s sm" href="${esc(url)}" target="_blank" rel="noopener" style="text-decoration:none">Test et</a>
+        <button class="btn s sm" data-cp="${esc(url)}">Linki kopyala</button>
+        <button class="btn s sm" data-p1="${nid}">Yazdır</button>
+        <button class="btn s sm" data-ne="${nid}">Ad değiştir</button>
+        <button class="btn d sm" data-nd="${nid}">Sil</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+$("qGrid").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  try{
+    if (b.dataset.cp){ await navigator.clipboard.writeText(b.dataset.cp); toast("Kopyalandı"); }
+    if (b.dataset.p1) printPosters([b.dataset.p1]);
+    if (b.dataset.ne){
+      const n = noktalar[b.dataset.ne]; const ad = prompt("Nokta adı", n.ad); if (!ad) return;
+      await update(ref(db, `noktalar/${qrDurak}/${b.dataset.ne}`), { ad: ad.trim() }); toast("Güncellendi");
+    }
+    if (b.dataset.nd && confirm(`"${noktalar[b.dataset.nd].ad}" silinsin mi? Bu noktaya basılmış QR'lar çalışmaz hale gelir.`)){
+      await remove(ref(db, `noktalar/${qrDurak}/${b.dataset.nd}`)); toast("Silindi");
+    }
+  }catch(err){ toast(err.message, true); }
+});
+$("pAll").onclick = () => printPosters(Object.keys(noktalar));
+$("pSel").onclick = () => {
+  const ids = [...document.querySelectorAll("[data-sel]:checked")].map(x => x.dataset.sel);
+  if (!ids.length) return toast("Önce yazdırılacak noktaları seçin", true);
+  printPosters(ids);
+};
+
+const SCAN = [
+  "Taksi çağırmak için okutun", "Scan to call a taxi", "Scannen und Taxi rufen",
+  "Сканируйте, чтобы вызвать такси", "Scan om een taxi te bellen", "Naskenujte a zavolejte taxi", "Zeskanuj, aby zamówić taksówkę"
+];
+function printPosters(ids){
+  if (!ids.length) return toast("Yazdırılacak nokta yok", true);
+  const d = duraklar[qrDurak] || {};
+  $("printArea").innerHTML = ids.map(nid => {
+    const n = noktalar[nid]; if (!n) return "";
+    return `<div class="poster">
+      <div class="ph"><div class="tx">TAXI</div><div class="sb">TAKSİ ÇAĞIR · CALL A TAXI</div></div>
+      <div class="pq"><img src="${qrDataUrl(qrUrl(nid), 600)}" alt="QR"></div>
+      <div class="langs">${SCAN.map(esc).join("<br>")}</div>
+      <div class="pn">📍 ${esc(n.ad)}</div>
+      <div class="pd">${esc(d.ad || "")}${d.telefon ? " · ☎ " + esc(d.telefon) : ""}</div>
+    </div>`;
+  }).join("");
+  const imgs = [...$("printArea").querySelectorAll("img")];
+  Promise.all(imgs.map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => window.print(), 150));
+}
+
+let tt = null;
+function toast(m, bad = false){ const el = $("toast"); el.textContent = m; el.classList.toggle("bad", bad); el.classList.remove("hidden"); clearTimeout(tt); tt = setTimeout(() => el.classList.add("hidden"), 3500); }
+</script>
+</body>
+</html>
