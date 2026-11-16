@@ -236,7 +236,7 @@ const { initializeApp } = FA;
 const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = FU;
 const { getDatabase, ref, get, set, onValue, query, orderByChild, startAt, runTransaction, serverTimestamp } = FD;
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, "durak"); // her sayfa ayrı oturum
 const auth = getAuth(app);
 const db = getDatabase(app);
 
